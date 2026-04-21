@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" style="--accent: #C8102E; --accent-soft: #C8102E14; --f-display: 'Geist', system-ui, sans-serif; --bg: #F5F1EC; --bg-2: #ECE6DE; --ink: #111111; --ink-2: #2A2A2A; --muted: #6B6B67; --line: #1111111A; --line-strong: #11111133;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Enterprise Electric Inc. · Boone, Iowa · Est. 1992</title>
+<meta name="description" content="Enterprise Electric Inc. — Master Electrician serving Boone, Greene, and Story counties since 1992. Residential, commercial, industrial, fire & security, directional boring, and hydrovac.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='3' fill='%23C8102E'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='14' font-weight='700' fill='white'>EEI</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter+Tight:ital,wght@0,300..700;1,300..700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<link rel="stylesheet" href="styles.css">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="components/atoms.jsx" data-presets="react"></script>
+<script type="text/babel" src="components/nav.jsx" data-presets="react"></script>
+<script type="text/babel" src="components/page-home.jsx" data-presets="react"></script>
+<script type="text/babel" src="components/pages.jsx" data-presets="react"></script>
+
+<script type="text/babel" data-presets="react">
+function useHashRoute() {
+  const [hash, setHash] = React.useState(window.location.hash || "#/");
+  React.useEffect(() => {
+    const h = () => setHash(window.location.hash || "#/");
+    window.addEventListener("hashchange", h);
+    return () => window.removeEventListener("hashchange", h);
+  }, []);
+  const clean = hash.replace(/^#\/?/, "").split("?")[0];
+  const parts = clean.split("/").filter(Boolean);
+  return [parts[0] || "home", parts[1] || null];
+}
+window.useHashRoute = useHashRoute;
+
+function App() {
+  const [route, sub] = window.useHashRoute();
+  const [lbIdx, setLbIdx] = React.useState(null);
+  React.useEffect(() => { window.scrollTo(0, 0); }, [route, sub]);
+  const open = (i) => setLbIdx(i);
+  const close = () => setLbIdx(null);
+  const prev = () => setLbIdx((i) => (i - 1 + GALLERY.length) % GALLERY.length);
+  const next = () => setLbIdx((i) => (i + 1) % GALLERY.length);
+
+  let content;
+  if (route === "about") content = <window.AboutPage />;
+  else if (route === "services") content = sub ? <window.ServiceDetailPage id={sub} /> : <window.ServicesIndexPage />;
+  else if (route === "gallery") content = <window.GalleryPage openLightbox={open} />;
+  else if (route === "contact") content = <window.ContactPage />;
+  else content = <window.HomePage openLightbox={open} />;
+
+  return (
+    <>
+      <window.Nav route={route} />
+      <main>{content}</main>
+      <window.Footer />
+      {lbIdx !== null && (
+        <window.Lightbox
+          photo={GALLERY[lbIdx]}
+          idx={lbIdx}
+          total={GALLERY.length}
+          onClose={close}
+          onPrev={prev}
+          onNext={next}
+        />
+      )}
+    </>
+  );
+}
+
+const __mount = () => {
+  if (!window.HomePage || !window.Nav || !window.Footer || !window.AboutPage) {
+    return setTimeout(__mount, 50);
+  }
+  const el = document.getElementById("root");
+  if (!el.__root) el.__root = ReactDOM.createRoot(el);
+  el.__root.render(<App />);
+};
+__mount();
+</script>
+
+</body>
+</html>
